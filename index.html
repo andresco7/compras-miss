@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capturador de Compras — IMSS Morelos</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --verde: #00704a;
+    --verde-claro: #e8f5f0;
+    --verde-medio: #b2dcc9;
+    --azul-imss: #003865;
+    --gris: #f4f5f6;
+    --gris-borde: #d8dde3;
+    --texto: #1a2332;
+    --texto-suave: #6b7a8d;
+    --blanco: #ffffff;
+    --rojo: #c0392b;
+    --naranja: #e67e22;
+    --fondo: #f0f3f7;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--fondo);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--azul-imss);
+    color: white;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  }
+  .logo-imss {
+    width: 32px; height: 32px;
+    background: white;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    color: var(--azul-imss);
+    flex-shrink: 0;
+  }
+  header h1 { font-size: 15px; font-weight: 500; letter-spacing: .3px; }
+  header .subtitle { font-size: 12px; opacity: .65; margin-left: auto; font-family: 'IBM Plex Mono', monospace; }
+
+  /* ── LAYOUT ── */
+  .contenedor {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  /* ── PANEL DE CABECERA ── */
+  .panel-cabecera {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid var(--gris-borde);
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .panel-cabecera h2 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--verde);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel-cabecera h2::before {
+    content: '';
+    display: inline-block;
+    width: 3px; height: 14px;
+    background: var(--verde);
+    border-radius: 2px;
+  }
+  .campos-cabecera {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  label { font-size: 12px; font-weight: 500; color: var(--texto-suave); display: block; margin-bottom: 5px; }
+  select, input[type="date"], input[type="text"] {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--gris-borde);
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--texto);
+    background: var(--gris);
+    transition: border .15s, background .15s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7a8d' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
+  select:focus, input:focus { outline: none; border-color: var(--verde); background: white; }
+
+  /* ── RESUMEN CONTADOR ── */
+  .resumen-bar {
+    background: var(--azul-imss);
+    color: white;
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 20px;
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+  .resumen-bar strong { font-family: 'IBM Plex Mono', monospace; font-size: 16px; }
+  .resumen-bar .sep { opacity: .35; }
+  .resumen-bar .total-monto { margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #7ee8b8; }
+
+  /* ── BUSCADOR ── */
+  .buscador-wrap { position: relative; margin-bottom: 14px; }
+  .buscador-wrap input {
+    padding-left: 36px;
+    background: white;
+    border-color: var(--gris-borde);
+  }
+  .buscador-wrap::before {
+    content: '🔍';
+    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    font-size: 14px; pointer-events: none;
+  }
+
+  /* ── GRUPOS Y CATEGORÍAS ── */
+  .grupo-bloque {
+    background: white;
+    border: 1px solid var(--gris-borde);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  }
+  .grupo-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 13px 16px;
+    cursor: pointer;
+    user-select: none;
+    background: var(--azul-imss);
+    color: white;
+    transition: background .1s;
+  }
+  .grupo-header:hover { background: #00294a; }
+  .grupo-header .grupo-icon { font-size: 18px; }
+  .grupo-header .grupo-nombre { font-weight: 600; font-size: 14px; flex: 1; }
+  .grupo-header .grupo-badge {
+    background: rgba(255,255,255,.2);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .grupo-header .grupo-selected {
+    background: #7ee8b8;
+    color: var(--azul-imss);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'IBM Plex Mono', monospace;
+    display: none;
+  }
+  .grupo-header .chevron { transition: transform .2s; font-size: 12px; opacity: .7; }
+  .grupo-header.open .chevron { transform: rotate(180deg); }
+  .grupo-body { display: none; }
+  .grupo-body.open { display: block; }
+
+  .cat-bloque { border-top: 1px solid var(--gris-borde); }
+  .cat-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    background: var(--verde-claro);
+    color: var(--verde);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    user-select: none;
+    transition: background .1s;
+  }
+  .cat-header:hover { background: var(--verde-medio); }
+  .cat-header .cat-badge {
+    background: var(--verde);
+    color: white;
+    border-radius: 20px;
+    padding: 1px 8px;
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    margin-left: auto;
+  }
+  .cat-header .cat-chevron { transition: transform .2s; margin-left: 4px; font-size: 10px; }
+  .cat-header.open .cat-chevron { transform: rotate(180deg); }
+  .cat-body { display: none; }
+  .cat-body.open { display: block; }
+
+  /* ── PRODUCTO FILAS ── */
+  .producto-fila {
+    display: grid;
+    grid-template-columns: 1fr 90px 100px 80px 70px;
+    gap: 8px;
+    align-items: center;
+    padding: 9px 14px;
+    border-top: 1px solid #f0f2f4;
+    transition: background .1s;
+  }
+  .producto-fila:hover { background: #fafbfc; }
+  .producto-fila.capturado { background: #f0faf5; }
+  .producto-nombre {
+    font-size: 12.5px;
+    color: var(--texto);
+    line-height: 1.3;
+  }
+  .producto-unidad {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: white;
+    background: var(--texto-suave);
+    border-radius: 4px;
+    padding: 2px 6px;
+    display: inline-block;
+    margin-top: 2px;
+  }
+  .input-num {
+    width: 100%;
+    padding: 7px 8px;
+    border: 1.5px solid var(--gris-borde);
+    border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    text-align: right;
+    color: var(--texto);
+    background: var(--gris);
+    transition: border .15s, background .15s;
+  }
+  .input-num:focus { outline: none; border-color: var(--verde); background: white; }
+  .input-num.tiene-valor { border-color: var(--verde); background: #f0faf5; }
+  .total-prod {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--verde);
+    text-align: right;
+    font-weight: 600;
+  }
+  .col-header-row {
+    display: grid;
+    grid-template-columns: 1fr 90px 100px 80px 70px;
+    gap: 8px;
+    padding: 6px 14px;
+    background: #f8f9fa;
+    border-top: 1px solid var(--gris-borde);
+  }
+  .col-header-row span {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--texto-suave);
+    text-align: right;
+  }
+  .col-header-row span:first-child { text-align: left; }
+
+  /* ── BOTÓN GUARDAR ── */
+  .footer-action {
+    position: sticky; bottom: 0;
+    background: white;
+    border-top: 1px solid var(--gris-borde);
+    padding: 12px 16px;
+    display: flex; gap: 10px; align-items: center;
+    margin: 0 -16px;
+    box-shadow: 0 -2px 12px rgba(0,0,0,.08);
+  }
+  .btn-guardar {
+    flex: 1;
+    background: var(--verde);
+    color: white;
+    border: none;
+    padding: 13px 20px;
+    border-radius: 8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-guardar:hover { background: #005a3a; }
+  .btn-guardar:active { transform: scale(.98); }
+  .btn-guardar:disabled { background: var(--gris-borde); color: var(--texto-suave); cursor: not-allowed; }
+  .btn-limpiar {
+    background: none;
+    border: 1.5px solid var(--gris-borde);
+    padding: 13px 16px;
+    border-radius: 8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    color: var(--texto-suave);
+    cursor: pointer;
+    transition: border .15s;
+  }
+  .btn-limpiar:hover { border-color: var(--rojo); color: var(--rojo); }
+
+  /* ── TOAST / NOTIF ── */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--azul-imss);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.2);
+    opacity: 0;
+    transition: opacity .3s, transform .3s;
+    z-index: 999;
+    white-space: nowrap;
+    max-width: 90vw;
+    white-space: normal;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--verde); }
+  .toast.error { background: var(--rojo); }
+
+  /* ── INSTRUCCIONES ── */
+  .instrucciones {
+    background: #fff9e6;
+    border: 1px solid #f0d58c;
+    border-left: 4px solid var(--naranja);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: #6b5200;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .instrucciones strong { color: var(--naranja); }
+
+  /* ── CONFIG MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 200;
+    display: none; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 8px 40px rgba(0,0,0,.2);
+  }
+  .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: var(--azul-imss); }
+  .modal p { font-size: 13px; color: var(--texto-suave); margin-bottom: 16px; line-height: 1.5; }
+  .modal input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--gris-borde);
+    border-radius: 7px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .modal .btn-ok {
+    width: 100%;
+    background: var(--azul-imss);
+    color: white;
+    border: none;
+    padding: 11px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .modal .btn-skip { width: 100%; background: none; border: none; color: var(--texto-suave); font-size: 12px; cursor: pointer; margin-top: 8px; padding: 6px; }
+
+  @media (max-width: 600px) {
+    .producto-fila { grid-template-columns: 1fr 70px 80px 65px 55px; gap: 5px; padding: 8px 10px; }
+    .col-header-row { grid-template-columns: 1fr 70px 80px 65px 55px; padding: 5px 10px; }
+    .producto-nombre { font-size: 11.5px; }
+    .input-num { padding: 6px 5px; font-size: 12px; }
+    header .subtitle { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-imss">IMSS</div>
+  <h1>Capturador de Compras · Víveres</h1>
+  <span class="subtitle">MORELOS · v1.0</span>
+</header>
+
+<!-- CONFIG MODAL -->
+<div class="modal-overlay open" id="modalConfig">
+  <div class="modal">
+    <h3>⚙️ Configuración inicial</h3>
+    <p>Pega aquí la URL de tu Script de Google Apps (el puente que conecta con el Sheet). Solo se pide una vez y se guarda en este navegador.</p>
+    <input type="text" id="inputScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+    <button class="btn-ok" onclick="guardarUrl()">Guardar y continuar →</button>
+    <button class="btn-skip" onclick="saltarConfig()">Continuar sin conectar (modo local)</button>
+  </div>
+</div>
+
+<div class="contenedor">
+
+  <!-- INSTRUCCIONES -->
+  <div class="instrucciones">
+    ⚠️ <strong>Instrucciones:</strong> Selecciona la unidad, proveedor y fecha. Luego abre el grupo y categoría que corresponde. Captura <strong>Cantidad</strong> y <strong>P. Unitario</strong> solo en los productos que compraste. Presiona <strong>Guardar Registro</strong> al terminar.
+  </div>
+
+  <!-- CABECERA DE REGISTRO -->
+  <div class="panel-cabecera">
+    <h2>Datos del registro</h2>
+    <div class="campos-cabecera">
+      <div>
+        <label>Unidad hospitalaria</label>
+        <select id="selUnidad">
+          <option value="">— Selecciona —</option>
+          <option>HGRMF 1 — Cuernavaca</option>
+          <option>HGZMF 5 — Zacatepec</option>
+          <option>HGZMF 7 — Cuautla</option>
+        </select>
+      </div>
+      <div>
+        <label>Proveedor</label>
+        <input type="text" id="inputProveedor" placeholder="Nombre del proveedor" />
+      </div>
+      <div>
+        <label>Fecha de compra</label>
+        <input type="date" id="inputFecha" />
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA RESUMEN -->
+  <div class="resumen-bar">
+    <div>Productos capturados: <strong id="contCapturados">0</strong></div>
+    <span class="sep">|</span>
+    <div>Renglones: <strong id="contRenglones">181</strong></div>
+    <div class="total-monto">Total: $<strong id="montoTotal">0.00</strong></div>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="buscador-wrap">
+    <input type="text" id="buscador" placeholder="Buscar producto..." oninput="filtrarProductos()" />
+  </div>
+
+  <!-- CATÁLOGO -->
+  <div id="catalogo"></div>
+
+  <!-- FOOTER -->
+  <div class="footer-action">
+    <button class="btn-limpiar" onclick="limpiarTodo()">🗑 Limpiar</button>
+    <button class="btn-guardar" id="btnGuardar" onclick="guardarRegistro()">
+      💾 Guardar Registro
+    </button>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// CATÁLOGO MAESTRO — 181 PRODUCTOS
+// ══════════════════════════════════════════════
+const CATALOGO = {"CARNES & EMBUTIDOS":{"SALCHICHONERIA":[{"nombre":"JAMON DE PAVO REB 30 G. PAQ. 1000 G","unidad":"KG"},{"nombre":"MORTADELA REB. 30 G. PAQ. 1000 G","unidad":"KG"},{"nombre":"SALCHICHA DE CERDO VIENA PZA 40 G. PAQ. 1000 G","unidad":"KG"},{"nombre":"SALCHICHA DE PAVO VIENA PZA 40 G. PAQ. 1000 G","unidad":"KG"},{"nombre":"TOCINO (500 G)","unidad":"KG"}]},"LECHE Y DERIVADOS":{"LACTEOS LÍQUIDOS":[{"nombre":"YOGURT NATURAL DE LECHE, ENVASE DE 1 LITRO","unidad":"PIEZA"},{"nombre":"LECHE ENTERA, TETRABRIK DE 1000 ML.","unidad":"LT"},{"nombre":"LECHE SEMIDESCREMADA, TETRABRIK DE 1000 ML.","unidad":"LT"},{"nombre":"MEDIA CREMA LATA DE 225 G","unidad":"PIEZA"}]},"FRUTAS Y VERDURAS":{"FRUTAS EN ESTADO NATURAL":[{"nombre":"CAÑA A GRANEL 1000 G","unidad":"KG"},{"nombre":"DURAZNO A GRANEL 1000 G","unidad":"KG"},{"nombre":"GUAYABA A GRANEL 1000 G","unidad":"KG"},{"nombre":"JICAMA A GRANEL 1000 G","unidad":"KG"},{"nombre":"MANDARINA A GRANEL 1000 G","unidad":"KG"},{"nombre":"MANGO  A GRANEL 1000 G","unidad":"KG"},{"nombre":"MANZANA RALLADA A GRANEL 1000 G","unidad":"KG"},{"nombre":"MANZANA STARKING A GRANEL 1000 G","unidad":"KG"},{"nombre":"MELON CHINO A GRANEL 1000 G","unidad":"KG"},{"nombre":"NARANJA PARA JUGO A GRANEL 1000 G","unidad":"KG"},{"nombre":"PAPAYA ROJA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"PERA MANTEQUILLA A  GRANEL, 1000 G","unidad":"KG"},{"nombre":"PERON A GRANEL, 1000 G","unidad":"KG"},{"nombre":"PIÑA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"PLATANO DOMINICO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"PLATANO MACHO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"PLATANO TABASCO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"SANDIA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"TEJOCOTE A GRANEL, 1000 G","unidad":"KG"},{"nombre":"TORONJA A GRANEL, 1000  G","unidad":"KG"},{"nombre":"TUNA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"UVA SIN SEMILLA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"LIMÓN SIN SEMILLA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"UVA CARDENAL A GRANEL, 1000 G","unidad":"KG"}],"VEGETALES EN ESTADO NATURAL":[{"nombre":"ACELGA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"AGUACATE A GRANEL, 1000 G","unidad":"KG"},{"nombre":"AJO BULBO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"APIO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"BETABEL A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CALABACITA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CEBOLLA BLANCA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CEBOLLA CAMBRAY A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CHAMPIÑON FRESCO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CHAYOTA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CHICHARO LIMPIO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CHILACAYOTE A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CHILE CHILACA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CHILE HABANERA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CHILE JALAPAÑO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CHILE POBLANO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CHILE SERRANO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"CILANTRO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"COL BLANCA A AGRANEL, 1000 G","unidad":"KG"},{"nombre":"EJOTE A GRANEL, 1000 G","unidad":"KG"},{"nombre":"ELOTE FRESCO ENTERO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"EPAZOTE A GRANEL DE 1000 G","unidad":"KG"},{"nombre":"ESPINACA FRESCA A GRANEL A 1000 G","unidad":"KG"},{"nombre":"GERMINADO DE ALFALFA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"GERMINADO DE SOYA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"HIERBAS DE OLOR A GRANEL. 1000 G","unidad":"KG"},{"nombre":"HOJA DE AGUACATE  A GRANEL, 1000 G","unidad":"KG"},{"nombre":"JITOMATE BOLA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"JITOMATE GUAJE O GUAJITO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"LECHUGA ROMANA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"NOPAL A GRANEL, 1000 G","unidad":"KG"},{"nombre":"PAPA BLANCA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"PAPA CAMBRAY A GRANEL, 1000 G","unidad":"KG"},{"nombre":"PEPINO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"PEREJIL A GRANEL, 1000 G","unidad":"KG"},{"nombre":"PIMIENTO MORRON A GRANEL, 1000 G","unidad":"KG"},{"nombre":"PORO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"TE DE LIMON A GRANEL, 1000 G","unidad":"KG"},{"nombre":"TE DE MANZANILLA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"TE DE YERBABUENA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"TOMATE VERDE LIMPIO A GRANEL, 1000 G","unidad":"KG"},{"nombre":"VERDOLAGA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"ZANAHORIA AGRANEL, 1000 G","unidad":"KG"}]},"ABARROTES":{"CEREALES":[{"nombre":"AMARANTO EN SEMILLA A GRANEL, 1000 G","unidad":"KG"},{"nombre":"ARROZ PULIDO EN BOLSA, 1000 G","unidad":"KG"},{"nombre":"AVENA LAMINADA EN BOLSA, 1000 G","unidad":"KG"},{"nombre":"CEREAL DE ARROZ EN LATA, TIPO A, 270 G","unidad":"LATA"},{"nombre":"CEREAL DE AVENA EN LATA, TIPO B, 270 G","unidad":"LATA"},{"nombre":"HOJUELAS DE MAIZ, CAJA DE CARTÓN DE 600 + 20 G","unidad":"CAJA"},{"nombre":"MAIZ CACAHUAZINTLE PRECOCIDO, BOLDA DE 1000 G","unidad":"PAQUETE"}],"HARINAS Y GALLETAS":[{"nombre":"GALLETA DULCE SURTIDA CAJA DE 430 G","unidad":"CAJA"},{"nombre":"GALLETA MARIA CAJA DE 850 G","unidad":"CAJA"},{"nombre":"GALLETA PARA SOPA BOLSA DE 150 G","unidad":"PAQUETE"},{"nombre":"GALLETA SALADA ENVASE INDIVIDUAL, CAJA DE 500 + 50 G","unidad":"CAJA"},{"nombre":"HARINA DE ARROZ, CAJA DE 250 G","unidad":"CAJA"},{"nombre":"HARINA DE MAIZ NIXTAMALIZADA, BOLSA DE 1000 G","unidad":"CAJA"},{"nombre":"HARINA DE MAIZ SIN NIXTAMALIZAR, CAJA DE 750 G","unidad":"CAJA"},{"nombre":"HARINA DE  MAIZ SIN NIXTAMALIZAR DE SABORES, SOBRE DE 50 G","unidad":"SOBRE"},{"nombre":"HARINA DE TRIGO EN BOLSA DE 1000 G","unidad":"PAQUETE"}],"PASTAS CORTAS":[{"nombre":"PASTA PARA SOPA CORTA BOLSA DE 200 + 20 G CODITO","unidad":"PAQUETE"},{"nombre":"PASTA PARA SOPA CORTA BOLSA DE 200 + 20 G FIDEO","unidad":"PAQUETE"},{"nombre":"PASTA PARA SOPA CORTA BOLSA DE 200 + 20 G LETRA","unidad":"PAQUETE"}],"PASTAS LARGAS":[{"nombre":"PASTA PARA SOPA LARGA BOLSA DE 200 + 20 G ESPAGUETI","unidad":"PAQUETE"},{"nombre":"PASTA PARA SOPA LARGA BOLSA DE 200 + 20 G MACARRON","unidad":"PAQUETE"}],"DULCE REGIONAL":[{"nombre":"DULCE DE AMARANTO PIEZA DE 30 G","unidad":"PIEZA"},{"nombre":"COCADA DE 30 G EN BOLSA INDIVIDUAL","unidad":"PIEZA"},{"nombre":"PALANQUETA DE CACAHUATE DE 30 G, BOLSA INDIVIDUAL","unidad":"PIEZA"}],"SEMILLAS DE LEGUMINOSAS":[{"nombre":"FRIJOL NEGRO  BOLSA DE 1000 G","unidad":"BOLSA"},{"nombre":"FRIJO PERUANO BOLSA DE 1000 G","unidad":"BOLSA"},{"nombre":"HABA SECA BOLSA DE 1000 G","unidad":"BOLSA"},{"nombre":"LENTEJA, BOLSA DE 1000 G","unidad":"BOLSA"}],"DULCES":[{"nombre":"ATE DE FRUTAS EN LATA","unidad":"PAQUETE"},{"nombre":"CHOCOLATE DE MESA CON AZÚCAR CAJE DE 500 + 20 G","unidad":"CAJA"},{"nombre":"MERMELADA DE FRESA, FRASCO DE 470 + 30 G","unidad":"FRASCO"}],"AZUCARES":[{"nombre":"AZÚCAR MORENO, BOLSA DE 1000 G","unidad":"BOLSA"}],"FRUTAS INDUSTRIALIZADAS":[{"nombre":"DURAZNO EN MITADES EN ALMIBAR, LATA DE 800 + 30","unidad":"LATA"},{"nombre":"GUAYABA EN ALAMIBAR, LATA DE 800 + 30 G","unidad":"LATA"},{"nombre":"MAGO EN ALMIBAR, LATA DE 800 + 30 G","unidad":"LATA"},{"nombre":"PIÑA EN ALMIBAR, LATA DE 800 + 30","unidad":"LATA"},{"nombre":"PIÑA EN TROZO EN ALMIBAR, LATA DE 800 + 30 G","unidad":"LATA"},{"nombre":"CIRUELA PROCESADA, A GRANEL 1000 G","unidad":"BOLSA"},{"nombre":"TAMARINDO, BOLSA DE 1000 G","unidad":"BOLSA"},{"nombre":"UVA PROCESADA DESHIDRATADA, A GRANEL 1000 G","unidad":"BOLSA"}],"JARABE":[{"nombre":"MIEL DE ABEJA, FRACO DE 330 ML","unidad":"FRASCO"},{"nombre":"MIEL DE MAIZ, FRASCO DE 500 ML","unidad":"FRASCO"},{"nombre":"MIEL DE MAIZ SABOR MAPLE, FRASCO DE 500 ML","unidad":"FRASCO"}],"GELATINA":[{"nombre":"POLVO PARA GELATINA EN AGUA BAJA EN CALORIAS, CAJA DE 25 + 5 G","unidad":"BOTE"},{"nombre":"POLVO PARA GELATINA EN AGUA, CAJA DE 100 + 10 G","unidad":"BOLSA"},{"nombre":"POLVO PARA GELATINA DE LECHE, BOLSA DE 1000 G","unidad":"BOLSA"},{"nombre":"GRENETINA EN POLVO, BOLSA DE 1000 G","unidad":"BOLSA"}],"JUGO":[{"nombre":"BEBIDA PARA BEBER DE MANZANA, BOTELLA 500ML","unidad":"BOTELLA"},{"nombre":"BEBIDA PARA BEBER DE MANZANA, BOTELLA 500ML","unidad":"BOTELLA"},{"nombre":"CONCENTRADO DE MANZANA (JUGO) BOTELLA DE 1000 ML","unidad":"BOTELLA"},{"nombre":"JUGO DE MANZANA, TETRABRIK DE 200 ML","unidad":"CAJA"}],"ACEITES":[{"nombre":"ACEITE DE CARTAMO, BOTELLA DE 1000 ML","unidad":"BOTELLA"},{"nombre":"ACEITE DE MAIZ, BOTELLA DE 1000 ML","unidad":"BOTELLA"},{"nombre":"ACEITE DE OLIVA, ENVASE DE 1000 ML","unidad":"BOTELLA"}],"VEGETALES INDUSTRIALIZADOS":[{"nombre":"ACEITUNA VERDE CON SEMILLA, ENVASE DE 350 + 20 G","unidad":"FRASCO"},{"nombre":"SALSA DE TOMATE CATSUP, ENVASE DE 1000 + 30 G","unidad":"BOTELLA"},{"nombre":"CHAMPIÑON ENVASADO, LATA DE 380 G","unidad":"LATA"},{"nombre":"CHICHARO PROCESADO, LATA DE 420 + 20 G","unidad":"LATA"},{"nombre":"CHILE CHIPOTLE, LATA DE 380 G","unidad":"LATA"},{"nombre":"CHILES JALAPEÑOS, LATA 400 G","unidad":"LATA"},{"nombre":"JITOMATE PROCESADO EN PURE, ENVASE DE 1000 G","unidad":"LATA"}],"CONDIMENTOS SOLIDOS":[{"nombre":"AJONJOLI, ENVASE DE 500 + 20 G","unidad":"BOLSA"},{"nombre":"ALMENDRA TOSTADA, BOLSA 1000 G","unidad":"BOLSA"},{"nombre":"CACAHUATE TOSTADO, BOLSA DE 1000 G","unidad":"BOLSA"},{"nombre":"NUEZ SIN CASCARA , A GRANEL 1000 G","unidad":"BOLSA"},{"nombre":"ACHIOTE EN PASTA, CAJA DE 100 G","unidad":"CAJA"},{"nombre":"CLAVO ENTERO, BOLSA DE 60 + 5 G","unidad":"BOLSA"},{"nombre":"COMINO ENTERO, BOLSA DE 60 + 5 G","unidad":"BOLSA"},{"nombre":"MOSTAZA , FRASCO DE 450 + 20 G","unidad":"FRASCO"},{"nombre":"OREGANO EN HOJA, ENVASE DE 1000 + 5 G","unidad":"BOLSA"},{"nombre":"PIMIENTA NEGRA ENTERA, ENVASE DE 60 + 5 G","unidad":"BOLSA"},{"nombre":"PIMIENTA NEGRA MOLIDA, ENVASE DE 60 + 5 G","unidad":"BOLSA"},{"nombre":"POLVO PARA HORNEAR, BOTE DE 454 G","unidad":"BOTE"},{"nombre":"MOLE POBLANO O ROJO, ENVASE DE 1000 G","unidad":"BOTE"},{"nombre":"MOLE VERDE EN PASTA, ENVASE DE 235 A 1000 G","unidad":"BOTE"}],"GRASAS":[{"nombre":"MAYONESA, FRASCO DE 720 G","unidad":"FRASCO"},{"nombre":"MAYONESA, FRASCO DE 1400 G","unidad":"FRASCO"}],"CAFE":[{"nombre":"CAFÉ PURO TOSTADO, MOLIDO, BOLSA DE 1000 G","unidad":"BOLSA"},{"nombre":"CAFÉ PURO SOLUBLE, FRASCO DE 200 + 25 G","unidad":"BOLSA"},{"nombre":"CAFÉ SOLUBLE DESCAFEINADO, FRSCO DE 200 +25 G","unidad":"FRASCO"}],"CANELA":[{"nombre":"CANELA EN RAJA A GRANEL 1000 G","unidad":"BOLSA"}],"CONSOME":[{"nombre":"CONSOME DE POLLO ENVASE DE 1000 + 50 G","unidad":"BOLSA"}],"VEGETALES SECOS":[{"nombre":"FLOR DE JAMAICA, BOLSA DE 1000 G","unidad":"BOLSA"},{"nombre":"CHILE SECO ANCHO, A GRANEL 1000 G","unidad":"KG"},{"nombre":"CHILE SECO ARBOL, A GRANEL 1000 G","unidad":"KG"},{"nombre":"CHILE SECO CASCABEL, A GRANEL 1000 G","unidad":"KG"},{"nombre":"CHILE SECO CHIPOTLE, A GRANEL 1000 G","unidad":"KG"},{"nombre":"CHILE SECO GUAJILLO, A GRANEL 1000 G","unidad":"KG"},{"nombre":"CHILE SECO MORITA,  A GRANEL 1000 G","unidad":"KG"},{"nombre":"CHILE SECO MULATO, A GRANEL 1000 G","unidad":"KG"},{"nombre":"CHILE SECO PASILLA, A GRANEL 1000 G","unidad":"KG"}],"CONDIMENTOS LIQUIDOS":[{"nombre":"SABORIZANTE ARTIFICIAL DE VAINILLA, FRASCO DE 250 ML","unidad":"FRASCO"},{"nombre":"SALSA INGLESA, FRASCO DE 145 ML","unidad":"BOTELLA"},{"nombre":"VINAGRE DE FRUTAS, ENVASE DE 1000 ML","unidad":"BOTELLA"}],"SAL":[{"nombre":"SAL REFINADA, BOLSA DE 1000 G","unidad":"BOLSA"}],"VEGETALES EN ESTADO NATURAL":[{"nombre":"TE DE MANZANILLA BOLSITA INIVIDUAL DE 1 A 1.5 G, CAJA DE 25 BOLSITAS","unidad":"CAJA"},{"nombre":"TE DE NARANJO BOLSITA INIVIDUAL DE 1 A 1.5 G, CAJA DE 25 BOLSITAS","unidad":"CAJA"},{"nombre":"TE DE YERBABUENA BOLSITA INIVIDUAL DE 1 A 1.5 G, CAJA DE 25 BOLSITAS","unidad":"CAJA"}],"CARNE SECA Y PRODUCTOS D/PESCA":[{"nombre":"ATUN EN ACEITE, LATA DE 295 G","unidad":"LATA"},{"nombre":"ATUN EN ACEITE, LATA DE 1880 G","unidad":"LATA"},{"nombre":"ATUN EN AGUA DE 295 G","unidad":"LATA"},{"nombre":"ATUN E AGUA DE 1880 G","unidad":"LATA"}],"LEGUMINOSAS INDUSTRIALIZADAS":[{"nombre":"SOYA PROCESADA EN CHORIZO, BOLSA DE  1000 G","unidad":"FRASCO"},{"nombre":"SOYA PROCESADA TEXTURIZADA, BOLSA DE 500 G","unidad":"BOLSA"}],"HUEVO":[{"nombre":"HUEVO ENTERO FRESCO, A GRANEL 1000 G","unidad":"CAJA"}]}};
+
+const GRUPO_ICONS = {
+  'CARNES & EMBUTIDOS': '🥩',
+  'LECHE Y DERIVADOS': '🥛',
+  'FRUTAS Y VERDURAS': '🥬',
+  'ABARROTES': '🛒'
+};
+
+// Estado de captura: { "GRUPO||CAT||PRODUCTO": { cantidad, precio } }
+let capturas = {};
+let scriptUrl = localStorage.getItem('imss_script_url') || '';
+
+// ── INIT ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Set today as default date
+  document.getElementById('inputFecha').valueAsDate = new Date();
+  // Build catalog
+  renderCatalogo();
+  // Skip modal if URL already saved
+  if (scriptUrl) {
+    document.getElementById('modalConfig').classList.remove('open');
+  }
+});
+
+// ── MODAL CONFIG ──────────────────────────────
+function guardarUrl() {
+  const url = document.getElementById('inputScriptUrl').value.trim();
+  if (url) {
+    localStorage.setItem('imss_script_url', url);
+    scriptUrl = url;
+  }
+  document.getElementById('modalConfig').classList.remove('open');
+}
+function saltarConfig() {
+  document.getElementById('modalConfig').classList.remove('open');
+}
+
+// ── RENDER CATÁLOGO ────────────────────────────
+function renderCatalogo(filtro = '') {
+  const contenedor = document.getElementById('catalogo');
+  contenedor.innerHTML = '';
+  const filtroLower = filtro.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  for (const [grupo, categorias] of Object.entries(CATALOGO)) {
+    let grupoVisible = false;
+    const grupoDiv = document.createElement('div');
+    grupoDiv.className = 'grupo-bloque';
+    grupoDiv.dataset.grupo = grupo;
+
+    // Contar seleccionados en grupo
+    const selEnGrupo = Object.keys(capturas).filter(k => k.startsWith(grupo + '||') && capturas[k].cantidad).length;
+
+    const grupoHeader = document.createElement('div');
+    grupoHeader.className = 'grupo-header' + (filtro ? ' open' : '');
+    grupoHeader.innerHTML = `
+      <span class="grupo-icon">${GRUPO_ICONS[grupo] || '📦'}</span>
+      <span class="grupo-nombre">${grupo}</span>
+      <span class="grupo-selected" id="gs-${encodeId(grupo)}" style="display:${selEnGrupo>0?'inline':'none'}">${selEnGrupo} ✓</span>
+      <span class="grupo-badge">${contarProductos(categorias)} prod.</span>
+      <span class="chevron">▼</span>
+    `;
+    grupoHeader.onclick = () => toggleGrupo(grupoHeader, grupoBody);
+
+    const grupoBody = document.createElement('div');
+    grupoBody.className = 'grupo-body' + (filtro ? ' open' : '');
+
+    for (const [cat, productos] of Object.entries(categorias)) {
+      const filtrados = filtro
+        ? productos.filter(p => normStr(p.nombre).includes(filtroLower))
+        : productos;
+      if (filtro && filtrados.length === 0) continue;
+      grupoVisible = true;
+
+      const catDiv = document.createElement('div');
+      catDiv.className = 'cat-bloque';
+
+      const catHeader = document.createElement('div');
+      catHeader.className = 'cat-header' + (filtro ? ' open' : '');
+      catHeader.innerHTML = `
+        ▸ ${cat}
+        <span class="cat-badge">${filtrados.length}</span>
+        <span class="cat-chevron">▼</span>
+      `;
+      const catBody = document.createElement('div');
+      catBody.className = 'cat-body' + (filtro ? ' open' : '');
+
+      catHeader.onclick = () => toggleCat(catHeader, catBody);
+
+      // Headers columnas
+      const colHdr = document.createElement('div');
+      colHdr.className = 'col-header-row';
+      colHdr.innerHTML = `<span>Producto</span><span>Unidad</span><span>Cantidad</span><span>P. Unit.</span><span>Total</span>`;
+      catBody.appendChild(colHdr);
+
+      for (const prod of filtrados) {
+        const key = `${grupo}||${cat}||${prod.nombre}`;
+        const cap = capturas[key] || {};
+        const fila = document.createElement('div');
+        fila.className = 'producto-fila' + (cap.cantidad ? ' capturado' : '');
+        fila.id = 'fila-' + encodeId(key);
+
+        fila.innerHTML = `
+          <div>
+            <div class="producto-nombre">${prod.nombre}</div>
+          </div>
+          <div><span class="producto-unidad">${prod.unidad}</span></div>
+          <input type="number" min="0" step="0.01" class="input-num" placeholder="0"
+            value="${cap.cantidad || ''}"
+            data-key="${escHtml(key)}" data-tipo="cantidad"
+            oninput="actualizarCaptura(this)"
+            onfocus="this.select()"
+          />
+          <input type="number" min="0" step="0.01" class="input-num" placeholder="0.00"
+            value="${cap.precio || ''}"
+            data-key="${escHtml(key)}" data-tipo="precio"
+            oninput="actualizarCaptura(this)"
+            onfocus="this.select()"
+          />
+          <div class="total-prod" id="tot-${encodeId(key)}">
+            ${cap.cantidad && cap.precio ? '$' + (cap.cantidad * cap.precio).toFixed(2) : '—'}
+          </div>
+        `;
+        // Marcar inputs con valor
+        const inputs = fila.querySelectorAll('.input-num');
+        inputs.forEach(inp => { if (inp.value) inp.classList.add('tiene-valor'); });
+
+        catBody.appendChild(fila);
+      }
+
+      catDiv.appendChild(catHeader);
+      catDiv.appendChild(catBody);
+      grupoBody.appendChild(catDiv);
+    }
+
+    grupoDiv.appendChild(grupoHeader);
+    grupoDiv.appendChild(grupoBody);
+    if (!filtro || grupoVisible) contenedor.appendChild(grupoDiv);
+  }
+}
+
+// ── TOGGLE ────────────────────────────────────
+function toggleGrupo(header, body) {
+  header.classList.toggle('open');
+  body.classList.toggle('open');
+}
+function toggleCat(header, body) {
+  header.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+// ── ACTUALIZAR CAPTURA ─────────────────────────
+function actualizarCaptura(input) {
+  const key = input.dataset.key;
+  const tipo = input.dataset.tipo;
+  const val = parseFloat(input.value) || 0;
+
+  if (!capturas[key]) capturas[key] = {};
+  capturas[key][tipo] = val > 0 ? val : null;
+
+  input.classList.toggle('tiene-valor', val > 0);
+
+  // Actualizar total de fila
+  const cap = capturas[key];
+  const totEl = document.getElementById('tot-' + encodeId(key));
+  if (totEl) {
+    if (cap.cantidad && cap.precio) {
+      totEl.textContent = '$' + (cap.cantidad * cap.precio).toFixed(2);
+    } else {
+      totEl.textContent = '—';
+    }
+  }
+
+  // Marcar fila
+  const filaEl = document.getElementById('fila-' + encodeId(key));
+  if (filaEl) {
+    filaEl.classList.toggle('capturado', !!(cap.cantidad));
+  }
+
+  actualizarResumen();
+}
+
+// ── RESUMEN ────────────────────────────────────
+function actualizarResumen() {
+  let count = 0, total = 0;
+  for (const [, cap] of Object.entries(capturas)) {
+    if (cap.cantidad) {
+      count++;
+      if (cap.precio) total += cap.cantidad * cap.precio;
+    }
+  }
+  document.getElementById('contCapturados').textContent = count;
+  document.getElementById('montoTotal').textContent = total.toFixed(2);
+
+  // Actualizar badges de grupos
+  for (const grupo of Object.keys(CATALOGO)) {
+    const sel = Object.keys(capturas).filter(k => k.startsWith(grupo + '||') && capturas[k].cantidad).length;
+    const badge = document.getElementById('gs-' + encodeId(grupo));
+    if (badge) {
+      badge.textContent = sel + ' ✓';
+      badge.style.display = sel > 0 ? 'inline' : 'none';
+    }
+  }
+}
+
+// ── BUSCAR ────────────────────────────────────
+function filtrarProductos() {
+  const q = document.getElementById('buscador').value.trim();
+  renderCatalogo(q);
+}
+
+// ── GUARDAR ───────────────────────────────────
+async function guardarRegistro() {
+  const unidad = document.getElementById('selUnidad').value;
+  const proveedor = document.getElementById('inputProveedor').value.trim();
+  const fecha = document.getElementById('inputFecha').value;
+
+  if (!unidad) { mostrarToast('⚠️ Selecciona la unidad hospitalaria', 'error'); return; }
+  if (!proveedor) { mostrarToast('⚠️ Ingresa el nombre del proveedor', 'error'); return; }
+  if (!fecha) { mostrarToast('⚠️ Selecciona la fecha de compra', 'error'); return; }
+
+  const renglones = [];
+  for (const [key, cap] of Object.entries(capturas)) {
+    if (!cap.cantidad) continue;
+    const [grupo, cat, producto] = key.split('||');
+    // Obtener unidad del catálogo
+    const prodObj = CATALOGO[grupo]?.[cat]?.find(p => p.nombre === producto);
+    renglones.push({
+      fecha,
+      unidad,
+      proveedor,
+      grupo,
+      categoria: cat,
+      producto,
+      unidad_medida: prodObj?.unidad || '',
+      cantidad: cap.cantidad,
+      precio_unitario: cap.precio || 0,
+      total: (cap.cantidad * (cap.precio || 0)).toFixed(2),
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  if (renglones.length === 0) {
+    mostrarToast('⚠️ No hay productos capturados', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true;
+  btn.textContent = '⏳ Guardando...';
+
+  if (scriptUrl) {
+    try {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ registros: renglones })
+      });
+      mostrarToast(`✅ ${renglones.length} renglones enviados al Sheet`, 'success');
+    } catch (e) {
+      mostrarToast('⚠️ Error de conexión. Datos descargados localmente.', 'error');
+      descargarCSV(renglones);
+    }
+  } else {
+    // Sin URL: descargar CSV
+    descargarCSV(renglones);
+    mostrarToast(`💾 ${renglones.length} renglones descargados como CSV`, 'success');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '💾 Guardar Registro';
+}
+
+// ── DESCARGAR CSV ─────────────────────────────
+function descargarCSV(renglones) {
+  const headers = ['Fecha','Unidad','Proveedor','Grupo','Categoria','Producto','Unidad_Medida','Cantidad','Precio_Unitario','Total','Timestamp'];
+  const rows = renglones.map(r => [
+    r.fecha, r.unidad, r.proveedor, r.grupo, r.categoria,
+    `"${r.producto}"`, r.unidad_medida, r.cantidad, r.precio_unitario, r.total, r.timestamp
+  ].join(','));
+  const csv = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `COMPRAS_${document.getElementById('inputFecha').value}_${document.getElementById('selUnidad').value.split('—')[0].trim()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── LIMPIAR ───────────────────────────────────
+function limpiarTodo() {
+  if (!confirm('¿Borrar todos los datos capturados?')) return;
+  capturas = {};
+  renderCatalogo(document.getElementById('buscador').value.trim());
+  actualizarResumen();
+  mostrarToast('🗑 Captura limpiada', '');
+}
+
+// ── TOAST ─────────────────────────────────────
+function mostrarToast(msg, tipo) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (tipo || '');
+  setTimeout(() => t.className = 'toast', 3500);
+}
+
+// ── UTILS ─────────────────────────────────────
+function contarProductos(cats) {
+  return Object.values(cats).reduce((s, arr) => s + arr.length, 0);
+}
+function encodeId(str) {
+  return str.replace(/[^a-zA-Z0-9]/g, '_');
+}
+function normStr(str) {
+  return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function escHtml(str) {
+  return str.replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>
